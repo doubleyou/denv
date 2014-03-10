@@ -21,8 +21,7 @@ case "$1" in
         vagrant box add $BOX $BOX_URL
         echo [_index] > $HOSTS
         ;;
-    new)
-
+    new|add|create)
         # Create a new VM
         name=$2
         dir=$VMS_DIR/$name
@@ -70,7 +69,7 @@ case "$1" in
         name=$2
         (cd $VMS_DIR/$name && vagrant halt)
         ;;
-    rm)
+    rm|del|remove|delete)
         name=$2
         ip=`cat $VMS_DIR/$name/ip`
         (cd $VMS_DIR/$name && vagrant destroy)
@@ -81,5 +80,8 @@ case "$1" in
     ssh)
         name=$2
         ssh `cat $VMS_DIR/$name/ip`
+        ;;
+    deploy)
+        ansible-playbook -i $ROOT/ansible/hosts $ROOT/ansible/site.yml
         ;;
 esac
