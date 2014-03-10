@@ -16,7 +16,7 @@ SSH_KEY_BASENAME=id_dsa
 case "$1" in
     init)
         cp -r . $ROOT
-        echo export PATH=$ROOT:\$PATH > ~/.profile
+        echo export PATH=$ROOT:\$PATH > ~/.bash_profile
         source ~/.profile
         vagrant box add $BOX $BOX_URL
         echo [_index] > $HOSTS
