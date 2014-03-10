@@ -79,7 +79,7 @@ case "$1" in
         ;;
     ssh)
         name=$2
-        ssh `cat $VMS_DIR/$name/ip`
+        ssh -t `cat $VMS_DIR/$name/ip`
         ;;
     deploy)
         ansible-playbook -i $ROOT/ansible/hosts $ROOT/ansible/site.yml
