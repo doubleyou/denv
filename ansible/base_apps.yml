@@ -14,3 +14,11 @@
         - iotop
         - tig
         - wget
+        - build-essential
+        - libncurses5-dev
+        - openssl
+        - libssl-dev
+        - fop
+        - xsltproc
+        - unixodbc-dev
+        - autoconf
