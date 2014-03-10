@@ -1,0 +1,84 @@
+#!/bin/bash
+
+ROOT=~/.denv
+VMS_DIR=$ROOT/vms
+
+BOX="precise64"
+BOX_URL=http://files.vagrantup.com/${BOX}.box
+IP_ZONE=192.168.42.
+
+PASSWD="\`openssl passwd -1 123456\`"
+
+HOSTS=~/.denv/hosts
+
+SSH_KEY_BASENAME=id_dsa
+
+case "$1" in
+    init)
+        cp -r . $ROOT
+        echo export PATH=$ROOT:\$PATH > ~/.profile
+        source ~/.profile
+        vagrant box add $BOX $BOX_URL
+        echo [_index] > $HOSTS
+        ;;
+    new)
+
+        # Create a new VM
+        name=$2
+        dir=$VMS_DIR/$name
+        vfile=$dir/Vagrantfile
+        mkdir -p $dir
+        cp ~/.denv/Vagrantfile $dir
+
+        # Find the smallest valid IP address to assign in Vagrantfile
+        for i in {2..254}; do
+            ip=${IP_ZONE}$i
+            if [ -z `find $VMS_DIR -name ip -exec grep $ip {} \;` ]; then
+                break
+            fi
+        done
+        echo $ip > $dir/ip
+
+        # Replace some stuff in Vagrantfile
+        sed -i.bak 's#\$name#"'$name'"#g' $vfile
+        sed -i.bak 's#\$ip#"'$ip'"#g' $vfile
+        rm $dir/Vagrantfile.bak
+
+        # Start the VM for some preparations
+        (cd $dir && vagrant up)
+
+        # Create a user of the current user's name and copy the SSH keys
+        ssh_flags="-i $HOME/.vagrant.d/insecure_private_key"
+        dotssh_tmp=/home/vagrant/.ssh_temp
+        dotssh=/home/$USER/.ssh
+        ssh $ssh_flags vagrant@$ip -t "sudo useradd -m -p $PASSWD -g admin -s $SHELL $USER"
+        scp -q $ssh_flags -rp ~/.ssh vagrant@$ip:$dotssh_tmp
+        ssh $ssh_flags vagrant@$ip -t "sudo sh -c 'cp -rf $dotssh_tmp $dotssh; rm -rf $dotssh_tmp; cat $dotssh/$SSH_KEY_BASENAME.pub >> $dotssh/authorized_keys; chown -R $USER $dotssh'"
+
+        # Create an Ansible host entity inside inventory file
+        sed -i.bak '/_index/a\
+            '$name' ansible_ssh_host='$ip'\
+            ' $HOSTS
+        rm $HOSTS.bak
+        ;;
+    start)
+        name=$2
+        (cd $VMS_DIR/$name && vagrant up)
+        ;;
+    stop)
+        name=$2
+        (cd $VMS_DIR/$name && vagrant halt)
+        ;;
+    rm)
+        name=$2
+        ip=`cat $VMS_DIR/$name/ip`
+        (cd $VMS_DIR/$name && vagrant destroy)
+        rm -rf $VMS_DIR/$name
+        sed -i.bak '/'$ip'/d' $HOSTS
+        rm $HOSTS.bak
+        ;;
+    ssh)
+        name=$2
+        ssh `cat $VMS_DIR/$name/ip`
+        ;;
+esac
