@@ -9,7 +9,7 @@ IP_ZONE=192.168.42.
 
 PASSWD="\`openssl passwd -1 123456\`"
 
-HOSTS=~/.denv/hosts
+HOSTS=~/.denv/ansible/hosts
 
 SSH_KEY_BASENAME=id_dsa
 
@@ -51,7 +51,8 @@ case "$1" in
         ssh_flags="-i $HOME/.vagrant.d/insecure_private_key"
         dotssh_tmp=/home/vagrant/.ssh_temp
         dotssh=/home/$USER/.ssh
-        ssh $ssh_flags vagrant@$ip -t "sudo useradd -m -p $PASSWD -g admin -s $SHELL $USER"
+        ssh $ssh_flags vagrant@$ip -t "sudo useradd -m -p $PASSWD -G admin -s $SHELL $USER"
+        ssh $ssh_flags vagrant@$ip -t "sudo usermod -g admin $USER"
         scp -q $ssh_flags -rp ~/.ssh vagrant@$ip:$dotssh_tmp
         ssh $ssh_flags vagrant@$ip -t "sudo sh -c 'cp -rf $dotssh_tmp $dotssh; rm -rf $dotssh_tmp; cat $dotssh/$SSH_KEY_BASENAME.pub >> $dotssh/authorized_keys; chown -R $USER $dotssh'"
 

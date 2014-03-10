@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+  - copy: src=~/.profile dest=~/.profile
+  - copy: src=~/.bash_profile dest=~/.bash_profile
+  - copy: src=~/.bashrc dest=~/.bashrc
+  - copy: src=~/.vimrc dest=~/.vimrc
+  - copy: src=~/.gitconfig dest=~/.gitconfig

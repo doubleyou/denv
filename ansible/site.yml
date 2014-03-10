@@ -1,0 +1,3 @@
+---
+- include: profile.yml
+- include: base_apps.yml

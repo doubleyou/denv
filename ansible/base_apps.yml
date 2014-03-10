@@ -1,0 +1,16 @@
+---
+- hosts: all
+  sudo: yes
+  tasks:
+    - stat: path=/var/cache/apt
+      register: apt_cache_stat
+    - apt: update_cache=yes
+      when: ansible_date_time.epoch|float - apt_cache_stat.stat.mtime > 60*60*12
+    - apt: pkg={{item}} state=latest
+      with_items:
+        - git
+        - vim
+        - htop
+        - iotop
+        - tig
+        - wget
